@@ -1,179 +1,106 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta name="theme-color" content="#0f766e" />
-  <meta name="description" content="Trust Layer – Don’t trust just verify it. Find verified local service professionals." />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <title>Trust Layer</title>
-  <link rel="manifest" href="manifest.json" />
-  <link rel="icon" href="logo.jpg" />
-  <link rel="apple-touch-icon" href="logo.jpg" />
-  <link rel="stylesheet" href="styles.css" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#2563eb">
+<title>Trust Layer</title>
+<link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div id="app">
-    <!-- Header -->
-    <header class="header">
-      <div class="header-content">
-        <div class="logo">
-          <img src="logo.jpg" alt="Trust Layer" class="logo-img" />
-          <div>
-            <h1>Trust Layer</h1>
-            <p class="tagline">Don’t trust just verify it</p>
-          </div>
-        </div>
-        <button id="theme-toggle" class="icon-btn" title="Toggle theme">🌙</button>
-      </div>
-    </header>
-
-    <!-- SEARCH FLOW: Service → Location → Filters -->
-    <div class="search-section">
-      <!-- Step 1: Search Service -->
-      <div class="search-input-wrapper">
-        <span class="search-icon">🔍</span>
-        <input type="text" id="search-input" placeholder="Search service (plumber, electrician...)" />
-        <button id="clear-search" class="clear-btn" style="display:none">✕</button>
-      </div>
-
-      <!-- Step 2: Location -->
-      <div class="location-wrapper">
-        <span class="loc-icon">📍</span>
-        <input type="text" id="location-input" placeholder="Enter your area / location" />
-      </div>
-
-      <!-- Step 3: Filters - Verified / Top Rated + Categories -->
-      <div class="filter-row">
-        <button class="filter-chip active" data-filter="all">All</button>
-        <button class="filter-chip" data-filter="verified">✓ Verified</button>
-        <button class="filter-chip" data-filter="toprated">★ Top Rated</button>
-      </div>
-
-      <div class="filter-chips" id="filter-chips"></div>
-    </div>
-
-    <!-- Main Content -->
-    <main id="main-content">
-      <div id="empty-state" class="empty-state">
-        <div class="empty-icon">
-          <img src="logo.jpg" alt="Trust Layer" style="width:90px;height:90px;object-fit:contain;border-radius:16px;" />
-        </div>
-        <h2>Find Verified Local Professionals</h2>
-        <p>
-          Search a service → enter location → filter Verified or Top Rated → view profile → Call or WhatsApp.
-        </p>
-        <button class="primary-btn" onclick="openAddModal()">+ Add Professional</button>
-      </div>
-
-      <div id="results-header" class="results-header" style="display:none;">
-        <span id="results-count">0 professionals found</span>
-      </div>
-
-      <div id="pros-list" class="pros-list"></div>
-    </main>
-
-    <!-- Floating Action Button -->
-    <button id="fab" class="fab" onclick="openAddModal()" title="Add Professional">+</button>
-
-    <!-- Add / Edit Modal -->
-    <div id="modal-overlay" class="modal-overlay" onclick="closeModal(event)">
-      <div class="modal" onclick="event.stopPropagation()">
-        <div class="modal-header">
-          <h2 id="modal-title">Add Professional</h2>
-          <button class="icon-btn" onclick="closeModal()">✕</button>
-        </div>
-        <form id="pro-form">
-          <input type="hidden" id="pro-id" />
-
-          <div class="form-group">
-            <label for="pro-name">Name / Business Name *</label>
-            <input type="text" id="pro-name" required placeholder="e.g. Ramesh Electricals" />
-          </div>
-
-          <div class="form-group">
-            <label for="pro-phone">Phone Number *</label>
-            <input type="tel" id="pro-phone" required placeholder="e.g. 9876543210" />
-          </div>
-
-          <div class="form-group">
-            <label for="pro-category">Service Category *</label>
-            <select id="pro-category" required>
-              <option value="">Select service</option>
-              <option value="Plumber">🔧 Plumber</option>
-              <option value="Electrician">⚡ Electrician</option>
-              <option value="AC Technician">❄️ AC Technician</option>
-              <option value="Carpenter">🪚 Carpenter</option>
-              <option value="Painter">🎨 Painter</option>
-              <option value="Mechanic">🚗 Mechanic</option>
-              <option value="Cleaner">🧹 Cleaner</option>
-              <option value="Mobile/Laptop Repair">💻 Mobile/Laptop Repair</option>
-              <option value="Appliance Repair">🏠 Appliance Repair</option>
-              <option value="Salon/Barber">💇 Salon/Barber</option>
-              <option value="Tutor">📚 Tutor</option>
-              <option value="Tailor">🧵 Tailor</option>
-              <option value="Photographer">📷 Photographer</option>
-              <option value="Other">📦 Other</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label for="pro-area">Area / Location *</label>
-            <input type="text" id="pro-area" required placeholder="e.g. Sector 12, Rohini, New Delhi" />
-          </div>
-
-          <div class="form-group">
-            <label for="pro-services">Services Offered</label>
-            <input type="text" id="pro-services" placeholder="e.g. Repairs & Wiring, Installation" />
-          </div>
-
-          <div class="form-group">
-            <label for="pro-notes">Your Notes / Experience</label>
-            <textarea id="pro-notes" rows="3" placeholder="e.g. Fixed wiring same day, fair pricing"></textarea>
-          </div>
-
-          <div class="form-group">
-            <label for="pro-rating">Your Rating</label>
-            <div class="rating-input">
-              <input type="range" id="pro-rating" min="0" max="5" step="1" value="0" />
-              <span id="rating-display">Not rated</span>
-            </div>
-          </div>
-
-          <div class="form-group checkbox-group">
-            <label class="checkbox-label">
-              <input type="checkbox" id="pro-verified" />
-              <span>Mark as Verified (I have checked this professional)</span>
-            </label>
-          </div>
-
-          <div class="form-actions">
-            <button type="button" class="secondary-btn" onclick="closeModal()">Cancel</button>
-            <button type="submit" class="primary-btn" id="save-btn">Save</button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <!-- Detail / Profile Modal -->
-    <div id="detail-overlay" class="modal-overlay" onclick="closeDetail(event)">
-      <div class="modal detail-modal" onclick="event.stopPropagation()">
-        <div class="modal-header">
-          <h2 id="detail-name">Name</h2>
-          <button class="icon-btn" onclick="closeDetail()">✕</button>
-        </div>
-        <div class="detail-body" id="detail-body"></div>
-        <div class="detail-actions">
-          <a id="call-btn" class="action-btn call-btn" href="#">📞 Call</a>
-          <a id="whatsapp-btn" class="action-btn whatsapp-btn" href="#" target="_blank">💬 WhatsApp</a>
-          <button id="edit-btn" class="action-btn edit-btn" onclick="editFromDetail()">✏️ Edit</button>
-          <button id="delete-btn" class="action-btn delete-btn" onclick="confirmDelete()">🗑️ Delete</button>
-        </div>
-      </div>
-    </div>
+<header class="header">
+  <div>
+    <div class="brand">Trust Layer</div>
+    <div class="tagline">Don't Just Trust. Verify.</div>
   </div>
+  <button id="themeBtn" class="icon-btn" aria-label="Toggle theme">🌙</button>
+</header>
 
-  <script src="app.js"></script>
+<main>
+  <section class="hero">
+    <div class="hero-badge">✓ TRUSTED LOCAL SERVICES</div>
+    <h1>Find the right professional with confidence.</h1>
+    <p>Search a service, choose your location, check verification and ratings, then connect directly.</p>
+  </section>
+
+  <section class="search-card">
+    <label>What service do you need?</label>
+    <div class="search-wrap">
+      <span>🔎</span>
+      <input id="searchInput" type="search" placeholder="e.g. electrician, plumber, AC repair">
+    </div>
+
+    <div class="two-col">
+      <div>
+        <label>Service category</label>
+        <select id="categoryFilter">
+          <option value="">All Services</option>
+          <option>Plumber</option>
+          <option>Electrician</option>
+          <option>AC Technician</option>
+          <option>Carpenter</option>
+          <option>Painter</option>
+          <option>Mechanic</option>
+          <option>Cleaner</option>
+          <option>Mobile/Laptop Repair</option>
+          <option>Appliance Repair</option>
+          <option>Salon/Barber</option>
+          <option>Tutor</option>
+          <option>Tailor</option>
+          <option>Photographer</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div>
+        <label>Location / Area</label>
+        <div class="search-wrap">
+          <span>📍</span>
+          <input id="locationInput" type="text" placeholder="e.g. Vizianagaram">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="quick-categories">
+    <button data-cat="Electrician">⚡ Electrician</button>
+    <button data-cat="Plumber">🔧 Plumber</button>
+    <button data-cat="AC Technician">❄️ AC</button>
+    <button data-cat="Mobile/Laptop Repair">📱 Repair</button>
+  </section>
+
+  <section class="results-head">
+    <div>
+      <h2>Professionals near you</h2>
+      <span id="resultCount"></span>
+    </div>
+    <div class="filters">
+      <button class="filter active" data-filter="all">All</button>
+      <button class="filter" data-filter="verified">✓ Verified</button>
+      <button class="filter" data-filter="top">⭐ Top Rated</button>
+    </div>
+  </section>
+
+  <section id="results" class="results"></section>
+
+  <section id="emptyState" class="empty hidden">
+    <div class="empty-icon">🔍</div>
+    <h3>No matching professionals</h3>
+    <p>Try another service, category or location.</p>
+  </section>
+
+  <section class="trust-note">
+    <strong>Trust Layer reminder</strong>
+    <p>Verification indicates that the available profile information was checked. It does not guarantee future service quality.</p>
+  </section>
+</main>
+
+<div id="profileModal" class="modal hidden">
+  <div class="modal-card">
+    <button id="closeModal" class="close">×</button>
+    <div id="profileContent"></div>
+  </div>
+</div>
+
+<script src="app.js"></script>
 </body>
 </html>

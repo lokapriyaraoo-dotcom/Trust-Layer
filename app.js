@@ -1,435 +1,78 @@
-// Trust Layer - Don’t trust just verify it
-// Customer Flow: Open App → Search Service → Location → Filter Verified/Top Rated → View Profile → Call/WhatsApp
+const sampleProfessionals=[
+{id:"TL-1001",name:"Ravi Kumar Services",phone:"9876543210",category:"Electrician",area:"Vizianagaram",services:"Home wiring, fan repair, electrical maintenance",notes:"Identity and service details checked.",rating:4.8,verified:true,verifiedAt:"2026-08-20"},
+{id:"TL-1002",name:"Sai AC Care",phone:"9123456780",category:"AC Technician",area:"Visakhapatnam",services:"AC service, installation, gas filling",notes:"Professional profile verified.",rating:4.6,verified:true,verifiedAt:"2026-08-18"},
+{id:"TL-1003",name:"Krishna Plumbing Works",phone:"9988776655",category:"Plumber",area:"Vizianagaram",services:"Pipe repair, bathroom fittings, leakage repair",notes:"Customer-listed profile.",rating:4.2,verified:false,verifiedAt:null},
+{id:"TL-1004",name:"TechFix Solutions",phone:"9000012345",category:"Mobile/Laptop Repair",area:"Vizianagaram",services:"Phone repair, laptop service, software support",notes:"Profile information recorded.",rating:4.7,verified:true,verifiedAt:"2026-08-22"},
+{id:"TL-1005",name:"Srinivas Home Care",phone:"9555512345",category:"Carpenter",area:"Visakhapatnam",services:"Furniture repair, doors, modular work",notes:"Customer-listed profile.",rating:4.5,verified:false,verifiedAt:null}
+];
 
-const STORAGE_KEY = 'trustlayer_pros';
-const THEME_KEY = 'trustlayer_theme';
+let professionals=JSON.parse(localStorage.getItem("trustlayer_user_profiles")||"null")||sampleProfessionals;
+let activeFilter="all";
 
-let professionals = [];
-let currentFilter = 'all';       // all | verified | toprated
-let currentCategory = 'All';
-let editingId = null;
-let detailId = null;
+const $=id=>document.getElementById(id);
+const results=$("results"),empty=$("emptyState"),search=$("searchInput"),category=$("categoryFilter"),locationInput=$("locationInput"),modal=$("profileModal"),profile=$("profileContent");
 
-const categoryIcons = {
-  'Plumber': '🔧',
-  'Electrician': '⚡',
-  'AC Technician': '❄️',
-  'Carpenter': '🪚',
-  'Painter': '🎨',
-  'Mechanic': '🚗',
-  'Cleaner': '🧹',
-  'Mobile/Laptop Repair': '💻',
-  'Appliance Repair': '🏠',
-  'Salon/Barber': '💇',
-  'Tutor': '📚',
-  'Tailor': '🧵',
-  'Photographer': '📷',
-  'Other': '📦'
-};
+function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));}
 
-document.addEventListener('DOMContentLoaded', () => {
-  loadTheme();
-  loadProfessionals();
-  renderCategoryChips();
-  setupEventListeners();
-  renderList();
+function render(){
+ const q=search.value.trim().toLowerCase(), cat=category.value, loc=locationInput.value.trim().toLowerCase();
+ let list=professionals.filter(p=>{
+  const text=`${p.name} ${p.category} ${p.area} ${p.services} ${p.notes}`.toLowerCase();
+  const qok=!q||text.includes(q), cok=!cat||p.category===cat, lok=!loc||(p.area||"").toLowerCase().includes(loc);
+  const fok=activeFilter==="all"||(activeFilter==="verified"&&p.verified)||(activeFilter==="top"&&Number(p.rating)>=4.5);
+  return qok&&cok&&lok&&fok;
+ });
+ list.sort((a,b)=>Number(b.verified)-Number(a.verified)||Number(b.rating)-Number(a.rating));
+ results.innerHTML=list.map(card).join("");
+ empty.classList.toggle("hidden",list.length>0);
+ $("resultCount").textContent=`${list.length} result${list.length===1?"":"s"}`;
+}
+
+function card(p){
+ return `<article class="card">
+ <div class="card-top"><div><h3 class="name">${esc(p.name)}</h3><div class="category">${esc(p.category)}</div></div>
+ <span class="badge ${p.verified?"":"unverified"}">${p.verified?"✓ Verified":"Not verified"}</span></div>
+ <div class="meta"><span>📍 ${esc(p.area||"Location not provided")}</span><span>⭐ ${Number(p.rating).toFixed(1)}</span></div>
+ <div class="services">🛠 ${esc(p.services||"Services not listed")}</div>
+ <div class="actions">
+ <button class="action primary" onclick="openProfile('${p.id}')">View Profile</button>
+ <button class="action" onclick="callPro('${p.phone}')">📞 Call</button>
+ <button class="action" onclick="waPro('${p.phone}')">💬 WhatsApp</button>
+ </div></article>`;
+}
+
+function openProfile(id){
+ const p=professionals.find(x=>x.id===id);if(!p)return;
+ profile.innerHTML=`<div class="profile-title"><h2>${esc(p.name)}</h2><div class="category">${esc(p.category)}</div><p>${p.verified?"✓ Verification record available":"⚠ No verification record available"}</p></div>
+ <div class="profile-row"><div class="profile-label">LOCATION</div><div class="profile-value">📍 ${esc(p.area||"Not provided")}</div></div>
+ <div class="profile-row"><div class="profile-label">SERVICES</div><div class="profile-value">${esc(p.services||"Not provided")}</div></div>
+ <div class="profile-row"><div class="profile-label">RATING</div><div class="profile-value">⭐ ${Number(p.rating).toFixed(1)} / 5</div></div>
+ <div class="profile-row"><div class="profile-label">VERIFICATION</div><div class="profile-value">${p.verified?"Verified on "+esc(p.verifiedAt||"recorded date"):"This profile has not been marked verified."}</div></div>
+ <div class="profile-row"><div class="profile-label">PROFILE ID</div><div class="profile-value">${esc(p.id)}</div></div>
+ <div class="profile-row"><div class="profile-label">NOTES</div><div class="profile-value">${esc(p.notes||"No notes available")}</div></div>
+ <div class="profile-actions"><button class="primary" onclick="callPro('${p.phone}')">📞 Call</button><button onclick="waPro('${p.phone}')">💬 WhatsApp</button></div>`;
+ modal.classList.remove("hidden");
+}
+
+function callPro(phone){if(phone)location.href=`tel:${phone}`;}
+function waPro(phone){if(phone){const clean=phone.replace(/\D/g,"");location.href=`https://wa.me/91${clean}`;}}
+
+search.addEventListener("input",render);category.addEventListener("change",render);locationInput.addEventListener("input",render);
+
+document.querySelectorAll(".filter").forEach(btn=>btn.addEventListener("click",()=>{
+ document.querySelectorAll(".filter").forEach(b=>b.classList.remove("active"));
+ btn.classList.add("active");activeFilter=btn.dataset.filter;render();
+}));
+
+document.querySelectorAll(".quick-categories button").forEach(btn=>btn.addEventListener("click",()=>{
+ category.value=btn.dataset.cat;search.value="";render();
+}));
+
+$("closeModal").addEventListener("click",()=>modal.classList.add("hidden"));
+modal.addEventListener("click",e=>{if(e.target===modal)modal.classList.add("hidden")});
+$("themeBtn").addEventListener("click",()=>{
+ document.body.classList.toggle("dark");
+ localStorage.setItem("trustlayer_theme",document.body.classList.contains("dark")?"dark":"light");
 });
-
-function setupEventListeners() {
-  const searchInput = document.getElementById('search-input');
-  const locationInput = document.getElementById('location-input');
-  const clearBtn = document.getElementById('clear-search');
-
-  searchInput.addEventListener('input', (e) => {
-    clearBtn.style.display = e.target.value ? 'block' : 'none';
-    renderList();
-  });
-
-  locationInput.addEventListener('input', () => renderList());
-
-  clearBtn.addEventListener('click', () => {
-    searchInput.value = '';
-    clearBtn.style.display = 'none';
-    renderList();
-  });
-
-  // Main filters: All / Verified / Top Rated
-  document.querySelectorAll('.filter-chip').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      currentFilter = btn.dataset.filter;
-      renderList();
-    });
-  });
-
-  document.getElementById('pro-form').addEventListener('submit', handleSubmit);
-  document.getElementById('pro-rating').addEventListener('input', updateRatingDisplay);
-  document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
-}
-
-function loadTheme() {
-  const theme = localStorage.getItem(THEME_KEY) || 'light';
-  document.documentElement.setAttribute('data-theme', theme);
-  document.getElementById('theme-toggle').textContent = theme === 'dark' ? '☀️' : '🌙';
-}
-
-function toggleTheme() {
-  const current = document.documentElement.getAttribute('data-theme');
-  const next = current === 'dark' ? 'light' : 'dark';
-  document.documentElement.setAttribute('data-theme', next);
-  localStorage.setItem(THEME_KEY, next);
-  document.getElementById('theme-toggle').textContent = next === 'dark' ? '☀️' : '🌙';
-}
-
-function loadProfessionals() {
-  try {
-    const data = localStorage.getItem(STORAGE_KEY);
-    professionals = data ? JSON.parse(data) : [];
-  } catch (e) {
-    professionals = [];
-  }
-}
-
-function saveProfessionals() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(professionals));
-}
-
-function renderCategoryChips() {
-  const container = document.getElementById('filter-chips');
-  const categories = ['All', ...Object.keys(categoryIcons)];
-
-  container.innerHTML = categories.map(cat => {
-    const active = currentCategory === cat ? 'active' : '';
-    const icon = cat === 'All' ? '📋' : categoryIcons[cat];
-    return `<button class="chip ${active}" data-cat="${cat}">${icon} ${cat}</button>`;
-  }).join('');
-
-  container.querySelectorAll('.chip').forEach(chip => {
-    chip.addEventListener('click', () => {
-      currentCategory = chip.dataset.cat;
-      renderCategoryChips();
-      renderList();
-    });
-  });
-}
-
-function renderList() {
-  const listEl = document.getElementById('pros-list');
-  const emptyEl = document.getElementById('empty-state');
-  const resultsHeader = document.getElementById('results-header');
-  const resultsCount = document.getElementById('results-count');
-
-  const search = document.getElementById('search-input').value.toLowerCase().trim();
-  const location = document.getElementById('location-input').value.toLowerCase().trim();
-
-  let filtered = [...professionals];
-
-  // 1. Search Service
-  if (search) {
-    filtered = filtered.filter(p =>
-      p.name.toLowerCase().includes(search) ||
-      p.category.toLowerCase().includes(search) ||
-      (p.services && p.services.toLowerCase().includes(search)) ||
-      (p.notes && p.notes.toLowerCase().includes(search))
-    );
-  }
-
-  // 2. Location
-  if (location) {
-    filtered = filtered.filter(p =>
-      (p.area && p.area.toLowerCase().includes(location))
-    );
-  }
-
-  // 3. Filter: Verified / Top Rated
-  if (currentFilter === 'verified') {
-    filtered = filtered.filter(p => p.verified);
-  } else if (currentFilter === 'toprated') {
-    filtered = filtered.filter(p => p.rating >= 4);
-  }
-
-  // 4. Category chip
-  if (currentCategory !== 'All') {
-    filtered = filtered.filter(p => p.category === currentCategory);
-  }
-
-  // Sort: verified first, then rating, then recent
-  filtered.sort((a, b) => {
-    if (a.verified !== b.verified) return b.verified ? 1 : -1;
-    if ((b.rating || 0) !== (a.rating || 0)) return (b.rating || 0) - (a.rating || 0);
-    return (b.createdAt || 0) - (a.createdAt || 0);
-  });
-
-  if (professionals.length === 0) {
-    emptyEl.style.display = 'block';
-    listEl.innerHTML = '';
-    resultsHeader.style.display = 'none';
-    return;
-  }
-
-  emptyEl.style.display = 'none';
-  resultsHeader.style.display = 'block';
-  resultsCount.textContent = `${filtered.length} professional${filtered.length !== 1 ? 's' : ''} found`;
-
-  if (filtered.length === 0) {
-    listEl.innerHTML = `
-      <div class="empty-state" style="padding: 40px 20px;">
-        <div class="empty-icon">🔍</div>
-        <h2>No matches found</h2>
-        <p>Try changing service, location or filters.</p>
-      </div>
-    `;
-    return;
-  }
-
-  listEl.innerHTML = filtered.map(p => createCardHTML(p)).join('');
-
-  listEl.querySelectorAll('.pro-card').forEach(card => {
-    card.addEventListener('click', (e) => {
-      if (e.target.closest('.quick-btn')) return;
-      openDetail(card.dataset.id);
-    });
-  });
-}
-
-function createCardHTML(p) {
-  const icon = categoryIcons[p.category] || '📦';
-  const stars = p.rating > 0 ? '★'.repeat(p.rating) + '☆'.repeat(5 - p.rating) : '';
-  const verifiedBadge = p.verified ? `<span class="verified-badge">✓ Verified</span>` : '';
-  const verifiedDot = p.verified ? `<span class="verified-dot">✓</span>` : '';
-
-  return `
-    <div class="pro-card" data-id="${p.id}">
-      <div class="pro-avatar">
-        ${icon}
-        ${verifiedDot}
-      </div>
-      <div class="pro-info">
-        <div class="pro-name-row">
-          <span class="pro-name">${escapeHtml(p.name)}</span>
-          ${verifiedBadge}
-        </div>
-        <div class="pro-meta">
-          <span class="pro-category-tag">${escapeHtml(p.category)}</span>
-          ${stars ? `<span class="pro-rating">${stars}</span>` : ''}
-        </div>
-        ${p.area ? `<div class="pro-location">📍 ${escapeHtml(p.area)}</div>` : ''}
-        <div class="pro-quick-actions">
-          <a class="quick-btn quick-call" href="tel:${p.phone}" onclick="event.stopPropagation()">📞 Call</a>
-          <a class="quick-btn quick-wa" href="https://wa.me/91${cleanPhone(p.phone)}" target="_blank" onclick="event.stopPropagation()">💬 WhatsApp</a>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-function escapeHtml(text) {
-  if (!text) return '';
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
-}
-
-function cleanPhone(phone) {
-  return phone.replace(/\D/g, '').replace(/^91/, '');
-}
-
-function openAddModal() {
-  editingId = null;
-  document.getElementById('modal-title').textContent = 'Add Professional';
-  document.getElementById('save-btn').textContent = 'Save';
-  document.getElementById('pro-form').reset();
-  document.getElementById('pro-id').value = '';
-  document.getElementById('pro-rating').value = 0;
-  document.getElementById('pro-verified').checked = false;
-  updateRatingDisplay();
-  document.getElementById('modal-overlay').classList.add('active');
-  document.getElementById('pro-name').focus();
-}
-
-function closeModal(e) {
-  if (e && e.target !== e.currentTarget && !e.target.closest('.icon-btn') && e.type === 'click') return;
-  document.getElementById('modal-overlay').classList.remove('active');
-}
-
-function updateRatingDisplay() {
-  const val = parseInt(document.getElementById('pro-rating').value);
-  const display = document.getElementById('rating-display');
-  display.textContent = val === 0 ? 'Not rated' : '★'.repeat(val) + '☆'.repeat(5 - val);
-}
-
-function handleSubmit(e) {
-  e.preventDefault();
-
-  const name = document.getElementById('pro-name').value.trim();
-  const phone = document.getElementById('pro-phone').value.trim();
-  const category = document.getElementById('pro-category').value;
-  const area = document.getElementById('pro-area').value.trim();
-  const services = document.getElementById('pro-services').value.trim();
-  const notes = document.getElementById('pro-notes').value.trim();
-  const rating = parseInt(document.getElementById('pro-rating').value) || 0;
-  const verified = document.getElementById('pro-verified').checked;
-
-  if (!name || !phone || !category || !area) {
-    showToast('Please fill required fields');
-    return;
-  }
-
-  if (editingId) {
-    const idx = professionals.findIndex(p => p.id === editingId);
-    if (idx !== -1) {
-      professionals[idx] = {
-        ...professionals[idx],
-        name, phone, category, area, services, notes, rating, verified,
-        updatedAt: Date.now(),
-        verifiedAt: verified ? (professionals[idx].verifiedAt || Date.now()) : null
-      };
-      showToast('Updated successfully');
-    }
-  } else {
-    const pro = {
-      id: 'TL-' + Date.now().toString().slice(-6) + Math.random().toString(36).slice(2, 5).toUpperCase(),
-      name, phone, category, area, services, notes, rating, verified,
-      createdAt: Date.now(),
-      verifiedAt: verified ? Date.now() : null
-    };
-    professionals.unshift(pro);
-    showToast(verified ? 'Verified professional saved!' : 'Professional saved!');
-  }
-
-  saveProfessionals();
-  closeModal();
-  renderList();
-}
-
-function openDetail(id) {
-  const pro = professionals.find(p => p.id === id);
-  if (!pro) return;
-
-  detailId = id;
-  document.getElementById('detail-name').textContent = pro.name;
-
-  const icon = categoryIcons[pro.category] || '📦';
-  const stars = pro.rating > 0
-    ? '★'.repeat(pro.rating) + '☆'.repeat(5 - pro.rating)
-    : 'Not rated';
-
-  const verifiedDate = pro.verifiedAt
-    ? new Date(pro.verifiedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
-    : null;
-
-  const qrData = encodeURIComponent(
-    `Trust Layer\n${pro.name}\n${pro.category}\n${pro.phone}\n${pro.area || ''}\nID: ${pro.id}`
-  );
-  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${qrData}`;
-
-  document.getElementById('detail-body').innerHTML = `
-    <div class="profile-header">
-      <div class="profile-avatar-lg">${icon}</div>
-      <div class="profile-title">
-        <h3>${escapeHtml(pro.name)}</h3>
-        <div class="profile-subtitle">${escapeHtml(pro.category)}${pro.services ? ' • ' + escapeHtml(pro.services) : ''}</div>
-        ${pro.verified ? '<span class="verified-badge" style="margin-top:6px;display:inline-flex">✓ VERIFIED</span>' : ''}
-      </div>
-    </div>
-
-    <div class="detail-row">
-      <span class="detail-label">LOCATION</span>
-      <span class="detail-value">${pro.area ? escapeHtml(pro.area) : '—'}</span>
-    </div>
-    <div class="detail-row">
-      <span class="detail-label">CONTACT</span>
-      <span class="detail-value">${escapeHtml(pro.phone)}</span>
-    </div>
-    ${pro.verified && verifiedDate ? `
-    <div class="detail-row">
-      <span class="detail-label">VERIFIED ON</span>
-      <span class="detail-value">${verifiedDate}</span>
-    </div>` : ''}
-    <div class="detail-row">
-      <span class="detail-label">YOUR RATING</span>
-      <span class="detail-value" style="color:#f59e0b">${stars}</span>
-    </div>
-    <div class="detail-row">
-      <span class="detail-label">PROFILE ID</span>
-      <span class="detail-value">${pro.id}</span>
-    </div>
-
-    ${pro.notes ? `
-    <div class="detail-notes">
-      <strong>YOUR NOTES</strong>
-      ${escapeHtml(pro.notes)}
-    </div>` : ''}
-
-    <div class="qr-section">
-      <img src="${qrUrl}" alt="QR Code" />
-      <p>Scan to share this profile<br>Profile ID: ${pro.id}</p>
-    </div>
-
-    <div class="disclaimer">
-      Verification confirms identity & details you recorded. It is NOT a guarantee of future service quality.
-    </div>
-  `;
-
-  document.getElementById('call-btn').href = `tel:${pro.phone}`;
-  document.getElementById('whatsapp-btn').href = `https://wa.me/91${cleanPhone(pro.phone)}`;
-
-  document.getElementById('detail-overlay').classList.add('active');
-}
-
-function closeDetail(e) {
-  if (e && e.target !== e.currentTarget && !e.target.closest('.icon-btn') && e.type === 'click') return;
-  document.getElementById('detail-overlay').classList.remove('active');
-  detailId = null;
-}
-
-function editFromDetail() {
-  const pro = professionals.find(p => p.id === detailId);
-  if (!pro) return;
-
-  closeDetail();
-  editingId = pro.id;
-
-  document.getElementById('modal-title').textContent = 'Edit Professional';
-  document.getElementById('save-btn').textContent = 'Update';
-  document.getElementById('pro-id').value = pro.id;
-  document.getElementById('pro-name').value = pro.name;
-  document.getElementById('pro-phone').value = pro.phone;
-  document.getElementById('pro-category').value = pro.category;
-  document.getElementById('pro-area').value = pro.area || '';
-  document.getElementById('pro-services').value = pro.services || '';
-  document.getElementById('pro-notes').value = pro.notes || '';
-  document.getElementById('pro-rating').value = pro.rating || 0;
-  document.getElementById('pro-verified').checked = !!pro.verified;
-  updateRatingDisplay();
-
-  document.getElementById('modal-overlay').classList.add('active');
-}
-
-function confirmDelete() {
-  if (!confirm('Delete this professional? This cannot be undone.')) return;
-  professionals = professionals.filter(p => p.id !== detailId);
-  saveProfessionals();
-  closeDetail();
-  renderList();
-  showToast('Deleted');
-}
-
-function showToast(msg) {
-  let toast = document.querySelector('.toast');
-  if (!toast) {
-    toast = document.createElement('div');
-    toast.className = 'toast';
-    document.body.appendChild(toast);
-  }
-  toast.textContent = msg;
-  toast.classList.add('show');
-  setTimeout(() => toast.classList.remove('show'), 2200);
-}
-
-window.openAddModal = openAddModal;
-window.closeModal = closeModal;
-window.closeDetail = closeDetail;
-window.editFromDetail = editFromDetail;
-window.confirmDelete = confirmDelete;
+if(localStorage.getItem("trustlayer_theme")==="dark")document.body.classList.add("dark");
+render();
