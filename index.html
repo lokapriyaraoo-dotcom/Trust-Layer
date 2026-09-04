@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#0f766e" />
-  <meta name="description" content="Trust Layer – Don’t trust just verify it. Find, save and verify local service professionals." />
+  <meta name="description" content="Trust Layer – Don’t trust just verify it. Find verified local service professionals." />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <title>Trust Layer</title>
@@ -29,13 +29,28 @@
       </div>
     </header>
 
-    <!-- Search & Filter -->
-    <div class="search-bar">
+    <!-- SEARCH FLOW: Service → Location → Filters -->
+    <div class="search-section">
+      <!-- Step 1: Search Service -->
       <div class="search-input-wrapper">
         <span class="search-icon">🔍</span>
-        <input type="text" id="search-input" placeholder="Search name, category, area..." />
+        <input type="text" id="search-input" placeholder="Search service (plumber, electrician...)" />
         <button id="clear-search" class="clear-btn" style="display:none">✕</button>
       </div>
+
+      <!-- Step 2: Location -->
+      <div class="location-wrapper">
+        <span class="loc-icon">📍</span>
+        <input type="text" id="location-input" placeholder="Enter your area / location" />
+      </div>
+
+      <!-- Step 3: Filters - Verified / Top Rated + Categories -->
+      <div class="filter-row">
+        <button class="filter-chip active" data-filter="all">All</button>
+        <button class="filter-chip" data-filter="verified">✓ Verified</button>
+        <button class="filter-chip" data-filter="toprated">★ Top Rated</button>
+      </div>
+
       <div class="filter-chips" id="filter-chips"></div>
     </div>
 
@@ -45,12 +60,15 @@
         <div class="empty-icon">
           <img src="logo.jpg" alt="Trust Layer" style="width:90px;height:90px;object-fit:contain;border-radius:16px;" />
         </div>
-        <h2>Find &amp; Save Trusted Professionals</h2>
+        <h2>Find Verified Local Professionals</h2>
         <p>
-          Search less. Trust more.<br>
-          Save plumbers, electricians, AC technicians and other local service providers you verify — so you can contact them instantly next time.
+          Search a service → enter location → filter Verified or Top Rated → view profile → Call or WhatsApp.
         </p>
-        <button class="primary-btn" onclick="openAddModal()">+ Add Your First Professional</button>
+        <button class="primary-btn" onclick="openAddModal()">+ Add Professional</button>
+      </div>
+
+      <div id="results-header" class="results-header" style="display:none;">
+        <span id="results-count">0 professionals found</span>
       </div>
 
       <div id="pros-list" class="pros-list"></div>
@@ -80,9 +98,9 @@
           </div>
 
           <div class="form-group">
-            <label for="pro-category">Category *</label>
+            <label for="pro-category">Service Category *</label>
             <select id="pro-category" required>
-              <option value="">Select category</option>
+              <option value="">Select service</option>
               <option value="Plumber">🔧 Plumber</option>
               <option value="Electrician">⚡ Electrician</option>
               <option value="AC Technician">❄️ AC Technician</option>
@@ -101,8 +119,8 @@
           </div>
 
           <div class="form-group">
-            <label for="pro-area">Area / Location</label>
-            <input type="text" id="pro-area" placeholder="e.g. Sector 12, Rohini, New Delhi" />
+            <label for="pro-area">Area / Location *</label>
+            <input type="text" id="pro-area" required placeholder="e.g. Sector 12, Rohini, New Delhi" />
           </div>
 
           <div class="form-group">
@@ -112,7 +130,7 @@
 
           <div class="form-group">
             <label for="pro-notes">Your Notes / Experience</label>
-            <textarea id="pro-notes" rows="3" placeholder="e.g. Fixed wiring same day, fair pricing, reliable for emergencies"></textarea>
+            <textarea id="pro-notes" rows="3" placeholder="e.g. Fixed wiring same day, fair pricing"></textarea>
           </div>
 
           <div class="form-group">
@@ -126,7 +144,7 @@
           <div class="form-group checkbox-group">
             <label class="checkbox-label">
               <input type="checkbox" id="pro-verified" />
-              <span>I have verified this professional (ID / work / reference)</span>
+              <span>Mark as Verified (I have checked this professional)</span>
             </label>
           </div>
 
@@ -138,7 +156,7 @@
       </div>
     </div>
 
-    <!-- Detail Modal -->
+    <!-- Detail / Profile Modal -->
     <div id="detail-overlay" class="modal-overlay" onclick="closeDetail(event)">
       <div class="modal detail-modal" onclick="event.stopPropagation()">
         <div class="modal-header">

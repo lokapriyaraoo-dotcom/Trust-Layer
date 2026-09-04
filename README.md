@@ -2,91 +2,57 @@
 
 **Don’t trust just verify it**
 
-A platform that helps people **find, verify and save** local service professionals with confidence.
+## Customer Flow
+
+```
+Open App → Search Service → Location → Filter Verified / Top Rated → View Profile → Call / WhatsApp
+```
+
+This is exactly how the app works.
+
+### Step-by-step for users:
+1. **Open App**
+2. **Search Service** – type plumber, electrician, AC, etc.
+3. **Location** – enter your area
+4. **Filter** – tap **Verified** or **Top Rated**
+5. **View Profile** – see full details + QR
+6. **Call / WhatsApp** – one tap
 
 ---
 
-## Two Sides of Trust Layer
+## Features
 
-### 1. Customer Side (This App)
-This current app is for **customers / users**:
-
-- Search & save trusted local professionals
-- Mark them as verified by you
+- Search by service name / category
+- Location-based filtering
+- Verified filter
+- Top Rated filter (4★ & above)
+- Category chips
+- Verified badge
+- Profile with QR code
 - One-tap Call & WhatsApp
-- View profile + QR code
-- Keep personal notes and ratings
-- Never lose a good plumber/electrician again
-
-### 2. Worker / Business Side (Future)
-For service providers (plumbers, electricians, salons, etc.):
-
-- Register their business
-- Get verified by Trust Layer
-- Receive a public verified profile + QR code
-- Collect real customer feedback
-- Appear in local search
-
-> The logo works for both sides — the shield + magnifying glass represents verification + discovery.
-
----
-
-## Current Features (Customer App)
-
-- Add professionals with name, phone, category, area, services, notes & rating
-- **Verified badge** (you mark who you have checked)
-- Search & category filters
-- Call / WhatsApp one-tap
-- QR code on every profile
-- Profile ID system (TL-XXXXXX)
 - Dark / Light mode
-- Fully offline (data on your device)
+- Fully offline
 - Installable as PWA
 
 ---
 
-## How to Run Locally
+## How to release on GitHub + make APK
 
-```bash
-cd trustlayer
-npx serve .
-# or
-python3 -m http.server 3000
-```
-
-Open the URL on your phone → “Add to Home Screen”.
-
----
-
-## How to Release on GitHub + Generate APK
-
-### Step 1: Put on GitHub
-1. Create a new public repository named `Trust-Layer`
+### 1. Upload to GitHub
+1. Create public repository `Trust-Layer`
 2. Upload all files in this folder
-3. Go to **Settings → Pages** → Enable GitHub Pages (branch: main)
-4. Your app will be live at:  
-   `https://YOUR_USERNAME.github.io/Trust-Layer/`
+3. Settings → Pages → Source = `main` → Save
+4. Live URL will be: `https://YOUR_USERNAME.github.io/Trust-Layer/`
 
-### Step 2: Generate Android APK (for Uptodown / direct download)
-1. Make sure the site is live (GitHub Pages or Netlify)
-2. Go to → https://www.pwabuilder.com
-3. Enter your live URL
-4. Click **Package for Stores** → choose **Android**
-5. Download the `.apk` file
-6. Upload the APK to:
-   - GitHub **Releases** (so people can download it)
-   - Uptodown (alternative app store)
+### 2. Generate Android APK
+1. Open https://www.pwabuilder.com
+2. Paste your live GitHub Pages URL
+3. Click **Package for Stores** → **Android**
+4. Download the `.apk` file
 
-### Step 3: Uptodown
-1. Create developer account on uptodown.com
-2. Submit the APK + screenshots + description
-3. Wait for review
-
----
-
-## Logo
-
-The official logo is included as `logo.jpg`.
+### 3. Publish
+- Upload APK to **GitHub Releases**
+- Submit same APK to **Uptodown**
 
 ---
 
