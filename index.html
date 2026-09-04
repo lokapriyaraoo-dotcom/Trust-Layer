@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0f766e" />
+  <meta name="description" content="Trust Layer – Don’t trust just verify it. Find, save and verify local service professionals." />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>Trust Layer</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="logo.jpg" />
+  <link rel="apple-touch-icon" href="logo.jpg" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-content">
+        <div class="logo">
+          <img src="logo.jpg" alt="Trust Layer" class="logo-img" />
+          <div>
+            <h1>Trust Layer</h1>
+            <p class="tagline">Don’t trust just verify it</p>
+          </div>
+        </div>
+        <button id="theme-toggle" class="icon-btn" title="Toggle theme">🌙</button>
+      </div>
+    </header>
+
+    <!-- Search & Filter -->
+    <div class="search-bar">
+      <div class="search-input-wrapper">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="search-input" placeholder="Search name, category, area..." />
+        <button id="clear-search" class="clear-btn" style="display:none">✕</button>
+      </div>
+      <div class="filter-chips" id="filter-chips"></div>
+    </div>
+
+    <!-- Main Content -->
+    <main id="main-content">
+      <div id="empty-state" class="empty-state">
+        <div class="empty-icon">
+          <img src="logo.jpg" alt="Trust Layer" style="width:90px;height:90px;object-fit:contain;border-radius:16px;" />
+        </div>
+        <h2>Find &amp; Save Trusted Professionals</h2>
+        <p>
+          Search less. Trust more.<br>
+          Save plumbers, electricians, AC technicians and other local service providers you verify — so you can contact them instantly next time.
+        </p>
+        <button class="primary-btn" onclick="openAddModal()">+ Add Your First Professional</button>
+      </div>
+
+      <div id="pros-list" class="pros-list"></div>
+    </main>
+
+    <!-- Floating Action Button -->
+    <button id="fab" class="fab" onclick="openAddModal()" title="Add Professional">+</button>
+
+    <!-- Add / Edit Modal -->
+    <div id="modal-overlay" class="modal-overlay" onclick="closeModal(event)">
+      <div class="modal" onclick="event.stopPropagation()">
+        <div class="modal-header">
+          <h2 id="modal-title">Add Professional</h2>
+          <button class="icon-btn" onclick="closeModal()">✕</button>
+        </div>
+        <form id="pro-form">
+          <input type="hidden" id="pro-id" />
+
+          <div class="form-group">
+            <label for="pro-name">Name / Business Name *</label>
+            <input type="text" id="pro-name" required placeholder="e.g. Ramesh Electricals" />
+          </div>
+
+          <div class="form-group">
+            <label for="pro-phone">Phone Number *</label>
+            <input type="tel" id="pro-phone" required placeholder="e.g. 9876543210" />
+          </div>
+
+          <div class="form-group">
+            <label for="pro-category">Category *</label>
+            <select id="pro-category" required>
+              <option value="">Select category</option>
+              <option value="Plumber">🔧 Plumber</option>
+              <option value="Electrician">⚡ Electrician</option>
+              <option value="AC Technician">❄️ AC Technician</option>
+              <option value="Carpenter">🪚 Carpenter</option>
+              <option value="Painter">🎨 Painter</option>
+              <option value="Mechanic">🚗 Mechanic</option>
+              <option value="Cleaner">🧹 Cleaner</option>
+              <option value="Mobile/Laptop Repair">💻 Mobile/Laptop Repair</option>
+              <option value="Appliance Repair">🏠 Appliance Repair</option>
+              <option value="Salon/Barber">💇 Salon/Barber</option>
+              <option value="Tutor">📚 Tutor</option>
+              <option value="Tailor">🧵 Tailor</option>
+              <option value="Photographer">📷 Photographer</option>
+              <option value="Other">📦 Other</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="pro-area">Area / Location</label>
+            <input type="text" id="pro-area" placeholder="e.g. Sector 12, Rohini, New Delhi" />
+          </div>
+
+          <div class="form-group">
+            <label for="pro-services">Services Offered</label>
+            <input type="text" id="pro-services" placeholder="e.g. Repairs & Wiring, Installation" />
+          </div>
+
+          <div class="form-group">
+            <label for="pro-notes">Your Notes / Experience</label>
+            <textarea id="pro-notes" rows="3" placeholder="e.g. Fixed wiring same day, fair pricing, reliable for emergencies"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="pro-rating">Your Rating</label>
+            <div class="rating-input">
+              <input type="range" id="pro-rating" min="0" max="5" step="1" value="0" />
+              <span id="rating-display">Not rated</span>
+            </div>
+          </div>
+
+          <div class="form-group checkbox-group">
+            <label class="checkbox-label">
+              <input type="checkbox" id="pro-verified" />
+              <span>I have verified this professional (ID / work / reference)</span>
+            </label>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="secondary-btn" onclick="closeModal()">Cancel</button>
+            <button type="submit" class="primary-btn" id="save-btn">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Detail Modal -->
+    <div id="detail-overlay" class="modal-overlay" onclick="closeDetail(event)">
+      <div class="modal detail-modal" onclick="event.stopPropagation()">
+        <div class="modal-header">
+          <h2 id="detail-name">Name</h2>
+          <button class="icon-btn" onclick="closeDetail()">✕</button>
+        </div>
+        <div class="detail-body" id="detail-body"></div>
+        <div class="detail-actions">
+          <a id="call-btn" class="action-btn call-btn" href="#">📞 Call</a>
+          <a id="whatsapp-btn" class="action-btn whatsapp-btn" href="#" target="_blank">💬 WhatsApp</a>
+          <button id="edit-btn" class="action-btn edit-btn" onclick="editFromDetail()">✏️ Edit</button>
+          <button id="delete-btn" class="action-btn delete-btn" onclick="confirmDelete()">🗑️ Delete</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
